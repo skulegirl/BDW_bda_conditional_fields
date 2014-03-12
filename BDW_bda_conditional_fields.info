@@ -1,0 +1,5 @@
+name = BDW_bda_conditional_fields
+description = Make Boondocking Available profile fields dependent on whether the BDA pref is checked or not.
+version = "7.x-dev"
+project = "BDW_bda_conditional_fields"
+core = "7.x"

@@ -1,0 +1,85 @@
+<?php
+
+/** 
+ ** Implementation of hook_form_profile2_PROFILE_NAME_alter to make appropriate fields 
+ ** only visible and required if bda pref is selected.
+ ** (see modules/profile2/profile2.api.php)
+ **/
+function BDW_bda_conditional_fields_form_profile2_edit_boondocking_available_form_alter(&$form, &$form_state) {
+  $bda_input_string = ':input[name="profile_boondocking_available[field_ba_bda_pref][und]"]';
+  $dep_if_bda_visible = array('visible' => array($bda_input_string => array('value' => '0')));
+  $dep_if_nobda_visible = array('visible' => array($bda_input_string => array('value' => '1')));
+
+  // Got this idea from http://www.deckfifty.com/blog/2012-11/drupal-form-api-conditional-fields
+
+  foreach ($form['profile_boondocking_available'] as $fieldname => &$value)
+  {
+    switch ($fieldname) {
+      case 'field_ba_description':
+      case 'field_boondock_location':
+      case 'field_ba_photo':
+      case 'field_ba_local_attractions':
+        // Hide this field if no bda is selected
+        // Note: All fields within the group_ba_details fieldset are dealt with in the 
+        // BDW_bda_conditional_fields_field_group_build_pre_render_alter implementation below.
+        $value['#states'] = $dep_if_bda_visible;
+        // Add process callbacks to unrequire this field if bda is not specified
+        $value['#process'][] = 'BDW_bda_conditional_fields_if_no_bda_unrequire';
+        break;
+      case 'field_ba_why_no_bda':
+        // hide the 'why no bda' field if bda is selected       
+        $value['#states'] = $dep_if_nobda_visible;
+        // Add process callback to unrequire this field of bda is specified
+        $value['#process'][] = 'BDW_bda_conditional_fields_if_bda_unrequire';
+        break;
+    }
+  }
+}
+
+/* implement hook_field_group_build_pre_render_alter to hide the empty fieldset */
+// Got this idea from http://stackoverflow.com/questions/11042523/conditional-fieldgroups-fieldsets-in-drupal-7
+
+function BDW_bda_conditional_fields_field_group_build_pre_render_alter(&$element)
+{
+  $bda_input_string = ':input[name="profile_boondocking_available[field_ba_bda_pref][und]"]';
+  $dep_if_bda_visible = array('visible' => array($bda_input_string => array('value' => '0')));
+
+  if (isset($element['group_ba_details']))
+  {
+    $element['group_ba_details']['#states'] = $dep_if_bda_visible;
+    foreach ($element['group_ba_details'] as $fieldname => &$value)
+    {
+      if(isset($value['und']) && isset($value['und']['#process']))
+      {
+        $value['und']['#process'][] = 'BDW_bda_conditional_fields_if_no_bda_unrequire';
+      }
+    }
+  }
+}
+
+function BDW_bda_conditional_fields_if_no_bda_unrequire($element, &$form_state) 
+{
+  if (isset($form_state['input']['profile_boondocking_available']) &&
+     $form_state['input']['profile_boondocking_available']['field_ba_bda_pref']['und'] == 1)
+  {
+    _BDW_bda_conditional_fields_unrequire_element($element);
+  }
+  return $element;
+}
+
+function BDW_bda_conditional_fields_if_bda_unrequire($element, &$form_state) 
+{
+  if (isset($form_state['input']['profile_boondocking_available']) &&
+     $form_state['input']['profile_boondocking_available']['field_ba_bda_pref']['und'] == 0)
+  {
+    _BDW_bda_conditional_fields_unrequire_element($element);
+  }
+  return $element;
+}
+
+function _BDW_bda_conditional_fields_unrequire_element(&$element)
+{
+    $element['und'][0]['#required'] = 0;
+    $element['und']['#required'] = 0;
+}
+?>
