@@ -19,9 +19,17 @@ function BDW_bda_conditional_fields_form_profile2_edit_boondocking_available_for
       case 'field_boondock_location':
       case 'field_ba_photo':
       case 'field_ba_local_attractions':
+      case 'field_ba_max_nights':
+      case 'field_ba_max_rv_length_int':
+      case 'field_ba_number_of_spots':
+      case 'field_ba_pets_welcome':
+      case 'field_ba_pullthrough_spot':
+      case 'field_ba_slideout_awning':
+      case 'field_ba_wifi_available':
+      case 'field_barbecues_allowed':
+      case 'field_generators_allowed':
+      case 'field_lawn_chairs_allowed':
         // Hide this field if no bda is selected
-        // Note: All fields within the group_ba_details fieldset are dealt with in the 
-        // BDW_bda_conditional_fields_field_group_build_pre_render_alter implementation below.
         $value['#states'] = $dep_if_bda_visible;
         // Add process callbacks to unrequire this field if bda is not specified
         $value['#process'][] = 'BDW_bda_conditional_fields_if_no_bda_unrequire';
@@ -47,20 +55,13 @@ function BDW_bda_conditional_fields_field_group_build_pre_render_alter(&$element
   if (isset($element['group_ba_details']))
   {
     $element['group_ba_details']['#states'] = $dep_if_bda_visible;
-    foreach ($element['group_ba_details'] as $fieldname => &$value)
-    {
-      if(isset($value['und']) && isset($value['und']['#process']))
-      {
-        $value['und']['#process'][] = 'BDW_bda_conditional_fields_if_no_bda_unrequire';
-      }
-    }
   }
 }
 
 function BDW_bda_conditional_fields_if_no_bda_unrequire($element, &$form_state) 
 {
-  if (isset($form_state['input']['profile_boondocking_available']) &&
-     $form_state['input']['profile_boondocking_available']['field_ba_bda_pref']['und'] == 1)
+  if (isset($form_state['values']['profile_boondocking_available']) &&
+     $form_state['values']['profile_boondocking_available']['field_ba_bda_pref']['und'] == 1)
   {
     _BDW_bda_conditional_fields_unrequire_element($element);
   }
