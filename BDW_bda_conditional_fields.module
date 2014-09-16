@@ -60,8 +60,8 @@ function BDW_bda_conditional_fields_field_group_build_pre_render_alter(&$element
 
 function BDW_bda_conditional_fields_if_no_bda_unrequire($element, &$form_state) 
 {
-  if (isset($form_state['values']['profile_boondocking_available']) &&
-     $form_state['values']['profile_boondocking_available']['field_ba_bda_pref']['und'] == 1)
+  if (isset($form_state['input']['profile_boondocking_available']) &&
+     $form_state['input']['profile_boondocking_available']['field_ba_bda_pref']['und'] == 1)
   {
     _BDW_bda_conditional_fields_unrequire_element($element);
   }
