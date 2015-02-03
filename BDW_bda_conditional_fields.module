@@ -83,4 +83,46 @@ function _BDW_bda_conditional_fields_unrequire_element(&$element)
     $element['und'][0]['#required'] = 0;
     $element['und']['#required'] = 0;
 }
-?>
+
+function BDW_bda_conditional_fields_form_profile2_edit_profile_form_alter(&$form, &$form_state) {
+  $form['#validate'][] = 'BDW_bda_conditional_fields_validate';
+
+  foreach ($form['profile_profile'] as $fieldname => &$value) {
+    switch ($fieldname) {
+      case 'field_escapee_member_data':
+      case 'field_rvillage_member_data':
+      case 'field_fmca_member_data':
+        preg_match('/^(.*)_data/', $fieldname, $matches);
+        if (isset($matches[1]))
+        {
+          $trigger_field = $matches[1];
+          $input_string = ':input[name="profile_profile[' . $trigger_field . '][und]"]';
+          $value['#states'] = array(
+            'visible' => array(
+              $input_string => array('checked' => TRUE),
+              ),
+            'required' => array(
+              $input_string => array('checked' => TRUE)
+              ),
+            );
+        }
+        break;
+    }
+  }
+}
+
+function BDW_bda_conditional_fields_validate($form, &$form_state) {
+  $membership_fields = array(
+    'field_escapee_member' => 'Please enter your SKP number', 
+    'field_rvillage_member' => 'Please enter your RVillage user name', 
+    'field_fmca_member' => 'Please enter your FMCA membership number',
+  );
+  foreach ($membership_fields as $fieldname => $error) {
+    $datafield = $fieldname . '_data';
+    if ($form_state['input']['profile_profile'][$fieldname]['und'] == 1 &&
+        empty($form_state['input']['profile_profile'][$datafield]['und'][0]['value']))
+    {
+      form_set_error($datafield, t('@error', array('@error' => $error)));
+    }
+  }
+}
